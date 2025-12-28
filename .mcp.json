@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "expo-mcp": {
-      "type": "http",
-      "url": "https://mcp.expo.dev/mcp"
+      "command": "npx",
+      "args": ["-y", "expo-mcp-server"],
+      "env": {
+        "EXPO_TOKEN": "${EXPO_TOKEN}"
+      }
     }
   }
 }
