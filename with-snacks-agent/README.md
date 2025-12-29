@@ -43,7 +43,6 @@ npx expo start
 - **[Anthropic Claude](https://www.anthropic.com/)**: Claude Sonnet for intelligent code generation
 - **[Expo Router](https://docs.expo.dev/router/introduction/)**: File-based routing with API routes
 - **[Expo Snacks](https://snack.expo.dev/)**: Embedded preview for generated React Native code
-- **[NativeWind](https://www.nativewind.dev/)**: Tailwind CSS for React Native
 - **[React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)**: Smooth animations
 
 ## Architecture

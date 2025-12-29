@@ -4,7 +4,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 
 import "../lib/polyfills";
-import "../global.css";
 
 export default function RootLayout() {
   return (
