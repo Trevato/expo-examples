@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Liquid Glass Playground",
+    "slug": "ios-liquid-glass-playground",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "https://github.com/expo/expo/blob/main/templates/expo-template-blank/assets/icon.png?raw=true",
+    "scheme": "liquid-glass-playground",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.expo.liquidglassplayground"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "https://github.com/expo/expo/blob/main/templates/expo-template-blank/assets/adaptive-icon.png?raw=true",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.expo.liquidglassplayground"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "https://github.com/expo/expo/blob/main/templates/expo-template-blank/assets/favicon.png?raw=true"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1a1a2e"
+        }
+      ],
+      "./plugins/withDisableSwiftExplicitModules"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
