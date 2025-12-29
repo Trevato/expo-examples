@@ -39,7 +39,7 @@ npx expo start
 
 ## Technologies Used
 
-- **[AI SDK 4](https://ai-sdk.dev/)**: Vercel's AI SDK for streaming chat and tool calling
+- **[AI SDK 6](https://ai-sdk.dev/)**: Vercel's latest AI SDK with UIMessage, DefaultChatTransport, and enhanced tool calling
 - **[Anthropic Claude](https://www.anthropic.com/)**: Claude Sonnet for intelligent code generation
 - **[Expo Router](https://docs.expo.dev/router/introduction/)**: File-based routing with API routes
 - **[Expo Snacks](https://snack.expo.dev/)**: Embedded preview for generated React Native code

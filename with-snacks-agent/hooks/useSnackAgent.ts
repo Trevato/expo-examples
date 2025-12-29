@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { fetch as expoFetch } from "expo/fetch";
 import { getApiUrl } from "@/lib/api-url";
-import { DEFAULT_SNACK_CODE } from "@/lib/snack-templates";
 import type { SnackData } from "@/components/ChatMessage";
 
 export interface ProcessedMessage {
@@ -21,30 +21,33 @@ export function useSnackAgent() {
     messages,
     isLoading,
     error,
-    append,
+    sendMessage: chatSendMessage,
     setMessages,
   } = useChat({
-    fetch: expoFetch as unknown as typeof globalThis.fetch,
-    api: getApiUrl("/api/chat"),
-    body: {
-      currentCode: currentSnack?.code,
-    },
+    // AI SDK 6: Use DefaultChatTransport with expo/fetch for streaming support
+    transport: new DefaultChatTransport({
+      fetch: expoFetch as unknown as typeof globalThis.fetch,
+      api: getApiUrl("/api/chat"),
+      body: {
+        currentCode: currentSnack?.code,
+      },
+    }),
+    // Enable multi-step tool calling
+    maxSteps: 5,
     onError: (error) => {
       console.error("Chat error:", error);
     },
   });
 
   // Process messages to extract snack data from tool invocations
+  // AI SDK 6 uses message.parts array structure
   const processedMessages = useMemo((): ProcessedMessage[] => {
     return messages.map((message) => {
       let textContent = "";
       let snackData: SnackData | null = null;
 
-      // Handle different message structures
-      if (typeof message.content === "string") {
-        textContent = message.content;
-      } else if (message.parts) {
-        // Process parts for AI SDK v6 format
+      // AI SDK 6: Messages have a parts array
+      if (message.parts) {
         for (const part of message.parts) {
           if (part.type === "text") {
             textContent += part.text;
@@ -83,12 +86,12 @@ export function useSnackAgent() {
     return null;
   }, [processedMessages]);
 
-  // Send a message
+  // Send a message using AI SDK 6's sendMessage
   const sendMessage = useCallback(
     (content: string) => {
-      append({ role: "user", content });
+      chatSendMessage({ text: content });
     },
-    [append]
+    [chatSendMessage]
   );
 
   // View a specific snack
@@ -108,13 +111,6 @@ export function useSnackAgent() {
     setCurrentSnack(null);
     setShowPreview(false);
   }, [setMessages]);
-
-  // Update current snack when a new one is generated
-  // Auto-show preview when snack is generated
-  const handleSnackGenerated = useCallback((snack: SnackData) => {
-    setCurrentSnack(snack);
-    setShowPreview(true);
-  }, []);
 
   return {
     messages: processedMessages,

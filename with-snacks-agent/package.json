@@ -15,7 +15,7 @@
     "@expo/vector-icons": "^14.0.0",
     "@stardazed/streams-text-encoding": "~1.0.2",
     "@ungap/structured-clone": "~1.2.0",
-    "ai": "~4.3.16",
+    "ai": "~6.0.0",
     "expo": "~54.0.1",
     "expo-constants": "~18.0.8",
     "expo-haptics": "~15.0.0",

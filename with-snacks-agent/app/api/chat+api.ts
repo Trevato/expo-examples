@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { streamText, tool } from "ai";
+import { streamText, tool, UIMessage, convertToModelMessages } from "ai";
 import { z } from "zod";
 
 const anthropic = createAnthropic({
@@ -39,27 +39,33 @@ Your primary job is to generate and iterate on Expo Snack code based on user req
 - Focus on creating polished, production-quality UI`;
 
 export async function POST(request: Request) {
-  const { messages, currentCode } = await request.json();
+  const { messages, currentCode }: { messages: UIMessage[]; currentCode?: string } =
+    await request.json();
 
   // Add context about current code if available
-  const contextMessages = currentCode
+  const contextMessages: UIMessage[] = currentCode
     ? [
         {
-          role: "user" as const,
-          content: `Current snack code:\n\`\`\`javascript\n${currentCode}\n\`\`\``,
+          id: "context-user",
+          role: "user",
+          parts: [{ type: "text", text: `Current snack code:\n\`\`\`javascript\n${currentCode}\n\`\`\`` }],
         },
         {
-          role: "assistant" as const,
-          content: "I see your current code. What would you like me to change or add?",
+          id: "context-assistant",
+          role: "assistant",
+          parts: [{ type: "text", text: "I see your current code. What would you like me to change or add?" }],
         },
         ...messages,
       ]
     : messages;
 
+  // Convert UI messages to model messages for AI SDK 6
+  const modelMessages = await convertToModelMessages(contextMessages);
+
   const result = streamText({
     model: anthropic("claude-sonnet-4-20250514"),
     system: SYSTEM_PROMPT,
-    messages: contextMessages,
+    messages: modelMessages,
     tools: {
       generateSnack: tool({
         description:
@@ -81,7 +87,7 @@ export async function POST(request: Request) {
               "Additional npm packages required (e.g., ['@expo/vector-icons', 'expo-linear-gradient'])"
             ),
         }),
-        async execute({ name, description, code, dependencies }) {
+        execute: async ({ name, description, code, dependencies }) => {
           // Return the snack configuration
           return {
             name,
@@ -96,24 +102,12 @@ export async function POST(request: Request) {
     maxSteps: 3,
   });
 
-  return result.toDataStreamResponse({
-    getErrorMessage: __DEV__ ? errorHandler : undefined,
+  // Use AI SDK 6's toUIMessageStreamResponse for proper streaming
+  return result.toUIMessageStreamResponse({
     headers: {
+      // Required for iOS streaming support
       "Content-Type": "application/octet-stream",
       "Content-Encoding": "none",
     },
   });
-}
-
-function errorHandler(error: unknown) {
-  if (error == null) {
-    return "unknown error";
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return JSON.stringify(error);
 }
