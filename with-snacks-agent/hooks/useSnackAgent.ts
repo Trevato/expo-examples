@@ -17,9 +17,11 @@ export function useSnackAgent() {
   const [currentSnack, setCurrentSnack] = useState<SnackData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  const apiUrl = getApiUrl("/api/chat");
+
   const {
     messages,
-    isLoading,
+    status,
     error,
     sendMessage: chatSendMessage,
     setMessages,
@@ -27,7 +29,7 @@ export function useSnackAgent() {
     // AI SDK 6: Use DefaultChatTransport with expo/fetch for streaming support
     transport: new DefaultChatTransport({
       fetch: expoFetch as unknown as typeof globalThis.fetch,
-      api: getApiUrl("/api/chat"),
+      api: apiUrl,
       body: {
         currentCode: currentSnack?.code,
       },
@@ -39,8 +41,10 @@ export function useSnackAgent() {
     },
   });
 
+  const isLoading = status === "submitted" || status === "streaming";
+
   // Process messages to extract snack data from tool invocations
-  // AI SDK 6 uses message.parts array structure
+  // AI SDK 6 uses message.parts array structure with type: "tool-{toolName}"
   const processedMessages = useMemo((): ProcessedMessage[] => {
     return messages.map((message) => {
       let textContent = "";
@@ -50,14 +54,18 @@ export function useSnackAgent() {
       if (message.parts) {
         for (const part of message.parts) {
           if (part.type === "text") {
-            textContent += part.text;
-          } else if (part.type === "tool-invocation") {
-            const { toolInvocation } = part;
-            if (
-              toolInvocation.toolName === "generateSnack" &&
-              toolInvocation.state === "result"
-            ) {
-              snackData = toolInvocation.result as SnackData;
+            textContent += (part as { type: "text"; text: string }).text;
+          } else if (part.type === "tool-generateSnack") {
+            // New AI SDK 6 format: type is "tool-{toolName}"
+            const toolPart = part as {
+              type: "tool-generateSnack";
+              toolCallId: string;
+              state: "input-streaming" | "input-available" | "output-available";
+              input?: unknown;
+              output?: SnackData;
+            };
+            if (toolPart.state === "output-available" && toolPart.output) {
+              snackData = toolPart.output;
             }
           }
         }
@@ -86,7 +94,7 @@ export function useSnackAgent() {
     return null;
   }, [processedMessages]);
 
-  // Send a message using AI SDK 6's sendMessage
+  // Send a message using AI SDK's sendMessage
   const sendMessage = useCallback(
     (content: string) => {
       chatSendMessage({ text: content });

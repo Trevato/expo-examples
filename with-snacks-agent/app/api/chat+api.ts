@@ -1,6 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { streamText, tool, UIMessage, convertToModelMessages } from "ai";
-import { z } from "zod";
+import { streamText, tool, UIMessage, convertToModelMessages, jsonSchema } from "ai";
 
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
@@ -70,22 +69,35 @@ export async function POST(request: Request) {
       generateSnack: tool({
         description:
           "Generate complete Expo Snack code for a React Native app. Use this whenever the user asks for an app, component, or feature.",
-        parameters: z.object({
-          name: z.string().describe("A short, descriptive name for the snack"),
-          description: z
-            .string()
-            .describe("Brief description of what the snack does"),
-          code: z
-            .string()
-            .describe(
-              "The complete JavaScript/TypeScript code for the Expo Snack. Must be valid, self-contained code that exports a default App component."
-            ),
-          dependencies: z
-            .array(z.string())
-            .optional()
-            .describe(
-              "Additional npm packages required (e.g., ['@expo/vector-icons', 'expo-linear-gradient'])"
-            ),
+        inputSchema: jsonSchema<{
+          name: string;
+          description: string;
+          code: string;
+          dependencies?: string[];
+        }>({
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "A short, descriptive name for the snack",
+            },
+            description: {
+              type: "string",
+              description: "Brief description of what the snack does",
+            },
+            code: {
+              type: "string",
+              description:
+                "The complete JavaScript/TypeScript code for the Expo Snack. Must be valid, self-contained code that exports a default App component.",
+            },
+            dependencies: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Additional npm packages required (e.g., ['@expo/vector-icons', 'expo-linear-gradient'])",
+            },
+          },
+          required: ["name", "description", "code"],
         }),
         execute: async ({ name, description, code, dependencies }) => {
           // Return the snack configuration
@@ -100,6 +112,7 @@ export async function POST(request: Request) {
       }),
     },
     maxSteps: 3,
+    toolChoice: "required",
   });
 
   // Use AI SDK 6's toUIMessageStreamResponse for proper streaming
