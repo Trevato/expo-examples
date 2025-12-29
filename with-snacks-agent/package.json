@@ -2,13 +2,17 @@
   "name": "with-snacks-agent",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "deploy": "npx expo export -p web && npx eas-cli@latest deploy",
-    "postinstall": "mkdir -p node_modules/.cache/nativewind && npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css --minify"
+    "postinstall": "node scripts/generate-nativewind-css.js",
+    "eas-build-post-install": "node scripts/generate-nativewind-css.js"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.1",
@@ -23,6 +27,7 @@
     "expo-linking": "~8.0.7",
     "expo-mcp": "~0.2.1",
     "expo-router": "~6.0.0",
+    "expo-server": "^1.0.5",
     "expo-splash-screen": "~31.0.8",
     "expo-status-bar": "~3.0.7",
     "nativewind": "~4.0.1",

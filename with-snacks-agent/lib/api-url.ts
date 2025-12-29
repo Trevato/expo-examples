@@ -10,6 +10,13 @@ export function getApiUrl(path: string): string {
     return cachedBaseUrl + path;
   }
 
+  // In production, use configured API URL (required for native builds)
+  // Set EXPO_PUBLIC_API_URL in your environment or eas.json
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    cachedBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+    return cachedBaseUrl + path;
+  }
+
   // In development, use the Expo dev server
   if (__DEV__) {
     // Try multiple sources for the debugger host
@@ -37,13 +44,7 @@ export function getApiUrl(path: string): string {
     }
   }
 
-  // In production, use relative path (or configure EXPO_PUBLIC_API_URL)
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    cachedBaseUrl = process.env.EXPO_PUBLIC_API_URL;
-    return cachedBaseUrl + path;
-  }
-
-  // For web, relative path works
+  // For web in production, relative path works
   cachedBaseUrl = "";
   return path;
 }
